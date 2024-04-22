@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Evento {
+  id                String     @id @default(uuid())
+  nome_evento       String     @unique
+  data_evento       DateTime
+  local_evento      String
+  descricao_evento  String
+  contratado_evento String
+  custo_evento      String?
+  @@map("eventos")
+}
+
+model Lote {
+  id                String  @id @default(uuid())
+  lote              String
+  categoria         String
+  quantidade        Int
+  ingressos         Ingresso[]
+  @@map("lotes")
+}
+
+model Ingresso {
+  id                String @id @default(uuid())
+  quantidade        Int
+  preco_unitario    Float
+  lotes             Lote           @relation(fields:[loteId], references:[id])
+  loteId            String
+  categoria         String 
+  vendas  Venda[]
+  @@map("ingressos")
+}
+
+model Cliente {
+  id        String   @id @default(uuid())
+  nome      String
+  sobrenome String
+  celular   String?
+  email     String   @unique
+  @@map("clientes")
+}
+
+model Venda {
+  id            String    @id @default(uuid())
+  quantidade    Int
+  valor         Float
+  valor_total   Float
+  ingressos     Ingresso  @relation(fields:[ingressoId], references:[id])
+  ingressoId    String
+  @@map("vendas")
+}
