@@ -39,7 +39,6 @@ export default function UserForm() {
           setErrorMessage('Erro ao obter dados. Por favor, tente novamente.');
         } finally {
           await prisma.$disconnect();
-          console.log("teste")
         }
       }
     };
