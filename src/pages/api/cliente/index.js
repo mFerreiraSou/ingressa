@@ -16,12 +16,15 @@ export default async function handler(req, res) {
         },
       });
 
-      res.status(201).json({ message: 'Cliente cadastrado com sucesso!', user: novoCliente });
+      res.status(201).json({ message: 'Cliente cadastrado com sucesso!', cliente: novoCliente });
     } catch (error) {
       console.error('Erro ao cadastrar cliente:', error.message);
       res.status(500).json({ error: 'Erro ao cadastrar cliente', message: error.message });
     }
   } else {
-    res.status(405).json({ error: 'Método não permitido' });
+    if (req.method === 'GET'){
+      const data =  await prisma.cliente.findMany({});
+      return res.status(200).json(data);
+    }
   }
 }

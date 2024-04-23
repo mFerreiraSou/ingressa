@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 const schema = yup.object().shape({  
   lote: yup.string().required(),
   categoria: yup.string().required(),
-  quantidade: yup.number().integer().required(),
+  quantidade: yup.string().required(),
 });
 
 export default function UserForm() {
@@ -18,6 +19,8 @@ export default function UserForm() {
 
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
+  const [listaLote, SetListaLote] = useState([]);
+  const [IsHandle, SetIshandle] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,12 +29,17 @@ export default function UserForm() {
     });
   };
 
+  useEffect(() => {
+    axios.get("/api/lote").then((response) => {
+      SetListaLote(response.data)
+    })
+
+  }, [IsHandle])
+
   const handleSubmit = async (e) => {
     e.preventDefault();
   
     try {
-      // Converte a quantidade para um número inteiro
-      formData.quantidade = parseInt(formData.quantidade, 10);
   
       await schema.validate(formData, { abortEarly: false });
   
@@ -46,6 +54,7 @@ export default function UserForm() {
   
       if (response.ok) {
         console.log('Lote cadastrado com sucesso');
+        SetIshandle(!IsHandle)
         // Limpar o formulário após o cadastro
         setFormData({
           lote: '',
@@ -113,18 +122,38 @@ export default function UserForm() {
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Quantidade de ingressos no lote:</label>
           <input
-            type="int"
+            type="text"
             name="quantidade"
             value={formData.quantidade}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-400"
           />
-          {errors.lote && <span className="text-red-500">{errors.lote}</span>}
+          {errors.quantidade && <span className="text-red-500">{errors.quantidade}</span>}
         </div>
 
         {errorMessage && <span className="text-red-500">{errorMessage}</span>}
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Cadastrar</button>
       </form>
+    <div class="ml-10 overflow-x-auto">
+      <table class="min-w-full bg-white shadow-md rounded-xl">
+          <thead>
+            <tr class="bg-blue-gray-100 text-gray-700">
+              <th class="py-3 px-4 text-left">Lote</th>
+              <th class="py-3 px-4 text-left">Categoria</th>
+              <th class="py-3 px-4 text-left">Quantidade</th>
+            </tr>
+          </thead>
+          <tbody class="text-blue-gray-900">
+            {listaLote.map((item) => (
+              <tr class="border-b border-blue-gray-200">
+                <td class="py-3 px-4">{item.lote}</td>
+                <td class="py-3 px-4">{item.categoria}</td>
+                <td class="py-3 px-4">{item.quantidade}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

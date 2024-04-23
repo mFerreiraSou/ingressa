@@ -1,50 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
-import { PrismaClient } from '@prisma/client';
 
 const schema = yup.object().shape({  
-  quantidade: yup.number().required(),
-  valor: yup.number().required(),
-  categoriaId: yup.string().required(),
-  loteId: yup.string().required(),
+  quantidade: yup.string().required(),
+  preco_unitario: yup.string().required(),
+  categoria: yup.string().required(),
+  lote: yup.string().required(),
 });
 
 export default function UserForm() {
   const [formData, setFormData] = useState({    
     quantidade: '',
-    valor: '',
-    categoriaId: '',
-    loteId: '',
+    preco_unitario: '',
+    lote: '',
+    categoria: '',
   });
-
-  const [categorias, setCategorias] = useState([]);
-  const [lotes, setLotes] = useState([]);
 
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (typeof window === 'undefined') {
-        const prisma = new PrismaClient();
-        try {
-          const categoriasData = await prisma.categoria.findMany();
-          const lotesData = await prisma.lote.findMany();
-          setCategorias(categoriasData);
-          setLotes(lotesData);
-        } catch (error) {
-          console.error('Erro ao obter dados:', error);
-          setErrorMessage('Erro ao obter dados. Por favor, tente novamente.');
-        } finally {
-          await prisma.$disconnect();
-        }
-      }
-    };
-
-    fetchData();
-  }, []);
+  const [listaIngresso, SetListaIngresso] = useState([]);
+  const [IsHandle, SetIshandle] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -52,6 +30,13 @@ export default function UserForm() {
       [e.target.name]: e.target.value,
     });
   };
+
+  useEffect(() => {
+    axios.get("/api/ingresso").then((response) => {
+      SetListaIngresso(response.data)
+    })
+
+  }, [IsHandle])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,12 +55,13 @@ export default function UserForm() {
   
       if (response.ok) {
         console.log('Ingresso cadastrado com sucesso');
+        SetIshandle(!IsHandle)
         // Limpar o formulário após o cadastro
         setFormData({
           quantidade: '',
-          valor: '',
-          categoriaId: '',
-          loteId: '',
+          preco_unitario: '',
+          lote: '',
+          categoria: '',
         });
         setErrors({});
         setErrorMessage('');
@@ -105,7 +91,7 @@ export default function UserForm() {
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Quantidade disponível:</label>
           <input
-            type="text"
+            type="int"
             name="quantidade"
             value={formData.quantidade}
             onChange={handleChange}
@@ -117,13 +103,13 @@ export default function UserForm() {
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Valor do ingresso:</label>
           <input
-            type="text"
-            name="valor"
+            type="int"
+            name="preco_unitario"
             value={formData.valor}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-400"
           />
-          {errors.valor && <span className="text-red-500">{errors.valor}</span>}
+          {errors.preco_unitario && <span className="text-red-500">{errors.preco_unitario}</span>}
         </div>
 
         <div className="mb-4">
@@ -147,22 +133,41 @@ export default function UserForm() {
 
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Número do lote do ingresso:</label>
-          <select
-            name="loteId"
-            value={formData.loteId}
+          <input
+            type="int"
+            name="lote"
+            value={formData.lote}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-400"
-          >
-            <option value="">Selecione um lote</option>
-            {lotes.map((lote) => (
-              <option key={lote.id} value={lote.id}>{lote.numero}</option>
-            ))}
-          </select>
-          {errors.loteId && <span className="text-red-500">{errors.loteId}</span>}
+          />
+          {errors.lote && <span className="text-red-500">{errors.lote}</span>}
         </div>
+       
         {errorMessage && <span className="text-red-500">{errorMessage}</span>}
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Cadastrar</button>
       </form>
+      <div class="ml-10 overflow-x-auto">
+        <table class="min-w-full bg-white shadow-md rounded-xl">
+          <thead>
+            <tr class="bg-blue-gray-100 text-gray-700">
+              <th class="py-3 px-4 text-left">Quantidade</th>
+              <th class="py-3 px-4 text-left">Valor</th>
+              <th class="py-3 px-4 text-left">Lote</th>
+              <th class="py-3 px-4 text-left">Categoria</th>
+            </tr>
+          </thead>
+          <tbody class="text-blue-gray-900">
+            {listaIngresso.map((item) => (
+              <tr class="border-b border-blue-gray-200">
+                <td class="py-3 px-4">{item.quantidade}</td>
+                <td class="py-3 px-4">{item.preco_unitario}</td>
+                <td class="py-3 px-4">{item.lote}</td>
+                <td class="py-3 px-4">{item.categoria}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

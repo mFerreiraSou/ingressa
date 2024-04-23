@@ -28,19 +28,16 @@ model Lote {
   id                String  @id @default(uuid())
   lote              String
   categoria         String
-  quantidade        Int
-  ingressos         Ingresso[]
+  quantidade        String
   @@map("lotes")
 }
 
 model Ingresso {
   id                String @id @default(uuid())
-  quantidade        Int
-  preco_unitario    Float
-  lotes             Lote           @relation(fields:[loteId], references:[id])
-  loteId            String
-  categoria         String 
-  vendas  Venda[]
+  quantidade        String
+  preco_unitario    String
+  lote              String
+  categoria         String
   @@map("ingressos")
 }
 
@@ -55,10 +52,9 @@ model Cliente {
 
 model Venda {
   id            String    @id @default(uuid())
-  quantidade    Int
-  valor         Float
-  valor_total   Float
-  ingressos     Ingresso  @relation(fields:[ingressoId], references:[id])
-  ingressoId    String
+  quantidade    String
+  valor         String
+  valor_total   String
+  ingresso      String
   @@map("vendas")
 }

@@ -27,6 +27,9 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Erro ao cadastrar evento', message: error.message });
     }
   } else {
-    res.status(405).json({ error: 'Método não permitido' });
+    if (req.method === 'GET'){
+      const data =  await prisma.evento.findMany({});
+      return res.status(200).json(data);
+    }
   }
 }

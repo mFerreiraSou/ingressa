@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 const schema = yup.object().shape({  
@@ -25,12 +26,22 @@ export default function UserForm() {
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
 
+  const [listaEvento, SetListaEvento] = useState([]);
+  const [IsHandle, SetIshandle] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+  
+  useEffect(() => {
+    axios.get("/api/evento").then((response) => {
+      SetListaEvento(response.data)
+    })
+
+  }, [IsHandle])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,6 +60,7 @@ export default function UserForm() {
   
       if (response.ok) {
         console.log('Usuário cadastrado com sucesso');
+        SetIshandle(!IsHandle)
         // Limpar o formulário após o cadastro
         setFormData({
           nome_evento: '',
@@ -157,6 +169,32 @@ export default function UserForm() {
         {errorMessage && <span className="text-red-500">{errorMessage}</span>}
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Cadastrar</button>
       </form>
+      <div class="ml-10 overflow-x-auto">
+        <table class="min-w-full bg-white shadow-md rounded-xl">
+          <thead>
+            <tr class="bg-blue-gray-100 text-gray-700">
+              <th class="py-3 px-4 text-left">Nome evento</th>
+              <th class="py-3 px-4 text-left">Data do evento</th>
+              <th class="py-3 px-4 text-left">Local do evento</th>
+              <th class="py-3 px-4 text-left">Descrição do evento</th>
+              <th class="py-3 px-4 text-left">Contratado do evento</th>
+              <th class="py-3 px-4 text-left">Custo do evento</th>
+            </tr>
+          </thead>
+          <tbody class="text-blue-gray-900">
+            {listaEvento.map((item) => (
+              <tr class="border-b border-blue-gray-200">
+                <td class="py-3 px-4">{item.nome_evento}</td>
+                <td class="py-3 px-4">{item.data_evento}</td>
+                <td class="py-3 px-4">{item.local_evento}</td>
+                <td class="py-3 px-4">{item.descricao_evento}</td>
+                <td class="py-3 px-4">{item.contratado_evento}</td>
+                <td class="py-3 px-4">{item.custo_evento}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -5,14 +5,14 @@ const prisma = new PrismaClient();
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const { quantidade, preco_unitario, categoriaId, loteId } = req.body;
+      const { quantidade, preco_unitario, lote, categoria } = req.body;
 
       const novoIngresso = await prisma.ingresso.create({
         data: {
           quantidade,
-          preco_unitario,
-          categoriaId,
-          loteId
+          preco_unitario,          
+          lote,
+          categoria
         },
       });
 
@@ -22,6 +22,9 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Erro ao cadastrar ingresso', message: error.message });
     }
   } else {
-    res.status(405).json({ error: 'Método não permitido' });
+    if (req.method === 'GET'){
+      const data =  await prisma.ingresso.findMany({});
+      return res.status(200).json(data);
+    }
   }
 }

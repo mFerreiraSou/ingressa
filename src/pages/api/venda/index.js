@@ -5,14 +5,14 @@ const prisma = new PrismaClient();
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     try {
-      const { quantidade, valor, valor_total, ingressoId } = req.body;
+      const { quantidade, valor, valor_total, ingresso } = req.body;
 
       const novaVenda = await prisma.venda.create({
         data: {
           quantidade,
           valor,
           valor_total,
-          ingressoId,
+          ingresso,
         },
       });
 
@@ -22,6 +22,9 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Erro ao cadastrar venda', message: error.message });
     }
   } else {
-    res.status(405).json({ error: 'Método não permitido' });
+    if (req.method === 'GET'){
+      const data =  await prisma.venda.findMany({});
+      return res.status(200).json(data);
+    }
   }
 }

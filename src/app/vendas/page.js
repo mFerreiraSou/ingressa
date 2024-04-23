@@ -1,17 +1,14 @@
 "use client"
 
-import { useState } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
 
 const schema = yup.object().shape({  
-  quantidade: yup.number().required(),
-  valor: yup.number().required(),
-  valor_total: yup.number().required(),
-  ingressoId: yup.string().required().test('valid-ingresso', 'ID do ingresso inválido', async (value) => {
-    if (!value) return false;
-    const ingresso = await prisma.ingresso.findUnique({ where: { id: value } });
-    return !!ingresso;
-  }),  
+  quantidade: yup.string().required(),
+  valor: yup.string().required(),
+  valor_total: yup.string().required(),
+  ingresso: yup.string().required(),
 });
 
 export default function UserForm() {
@@ -19,11 +16,13 @@ export default function UserForm() {
     quantidade: '',
     valor: '',
     valor_total: '',
-    ingressoId: '',
+    ingresso: '',
   });
 
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
+  const [listaVenda, SetListaVenda] = useState([]);
+  const [IsHandle, SetIshandle] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -31,6 +30,13 @@ export default function UserForm() {
       [e.target.name]: e.target.value,
     });
   };
+
+  useEffect(() => {
+    axios.get("/api/venda").then((response) => {
+      SetListaVenda(response.data)
+    })
+
+  }, [IsHandle])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,12 +55,13 @@ export default function UserForm() {
   
       if (response.ok) {
         console.log('Venda cadastrada com sucesso');
+        SetIshandle(!IsHandle)
         // Limpar o formulário após o cadastro
         setFormData({
           quantidade: '',
           valor: '',
           valor_total: '',
-          ingressoId: '',
+          ingresso: '',
         });
         setErrors({});
         setErrorMessage('');
@@ -84,7 +91,7 @@ export default function UserForm() {
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Quantidade:</label>
           <input
-            type="int"
+            type="text"
             name="quantidade"
             value={formData.quantidade}
             onChange={handleChange}
@@ -97,18 +104,18 @@ export default function UserForm() {
           <label className="block text-gray-700 text-sm font-bold mb-2">Id do ingresso:</label>
           <input
             type="text"
-            name="ingressoId"
-            value={formData.ingressoId}
+            name="ingresso"
+            value={formData.ingresso}
             onChange={handleChange}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-400"
           />
-          {errors.ingressoId && <span className="text-red-500">{errors.ingressoId}</span>}
+          {errors.ingresso && <span className="text-red-500">{errors.ingresso}</span>}
         </div>
 
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Valor do ingresso:</label>
           <input
-            type="float"
+            type="text"
             name="valor"
             value={formData.valor}
             onChange={handleChange}
@@ -120,7 +127,7 @@ export default function UserForm() {
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">Valor total:</label>
           <input
-            type="float"
+            type="text"
             name="valor_total"
             value={formData.valor_total}
             onChange={handleChange}
@@ -132,6 +139,30 @@ export default function UserForm() {
         {errorMessage && <span className="text-red-500">{errorMessage}</span>}
         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Cadastrar</button>
       </form>
+
+      <div class="ml-10 overflow-x-auto">
+        <table class="min-w-full bg-white shadow-md rounded-xl">
+          <thead>
+            <tr class="bg-blue-gray-100 text-gray-700">
+              <th class="py-3 px-4 text-left">Quantidade</th>
+              <th class="py-3 px-4 text-left">Valor</th>
+              <th class="py-3 px-4 text-left">Valor Total</th>
+              <th class="py-3 px-4 text-left">Id do ingresso</th>
+            </tr>
+          </thead>
+          <tbody class="text-blue-gray-900">
+            {listaVenda.map((item) => (
+              <tr class="border-b border-blue-gray-200">
+                <td class="py-3 px-4">{item.quantidade}</td>
+                <td class="py-3 px-4">{item.valor}</td>
+                <td class="py-3 px-4">{item.valor_total}</td>
+                <td class="py-3 px-4">{item.ingresso}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 }
